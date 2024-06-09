@@ -36,11 +36,10 @@ jobs:
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Tofu Format
       run: tofu fmt -check
-    - name: pwd
-      run: ls
+    
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Tofu Init
-      run: tofu init
+      run: tofu init -backend-config=config.azurerm.tfbackend
 
     # Generates an execution plan for Terraform
     - name: Tofu Plan
