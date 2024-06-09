@@ -1,86 +1,86 @@
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "~>3.106.1"
     }
   }
 }
 
 provider "azurerm" {
-   features {}
+  features {}
 }
 
 data "azurerm_client_config" "current" {}
 
 variable "location" {
-  type = string
+  type    = string
   default = "East US"
 }
 
 variable "rg_name" {
-  type = string
+  type     = string
   nullable = false
 }
 
 variable "rg_id" {
-  type = string
+  type     = string
   nullable = false
 }
 
 variable "acr_name" {
-  type = string
+  type    = string
   default = "chefcitoacr"
 }
 
 variable "app_env_name" {
-  type = string
+  type    = string
   default = "chefcito-app-env"
 }
 
 variable "gateway_image" {
-  type = string
+  type    = string
   default = "gateway:latest"
 }
 
 variable "users_image" {
-  type = string
+  type    = string
   default = "users:latest"
 }
 
 variable "firebase_key" {
-  type = string
+  type     = string
   nullable = false
 }
 
 resource "azurerm_container_registry" "acr" {
-  sku = "Standard"
-  location = var.location
-  resource_group_name = var.rg_name
-  name = var.acr_name
+  sku                    = "Standard"
+  location               = var.location
+  resource_group_name    = var.rg_name
+  name                   = var.acr_name
   anonymous_pull_enabled = false
-  admin_enabled = true
+  admin_enabled          = true
 }
 
 resource "azurerm_container_app_environment" "app_env" {
-  name = var.app_env_name
-  location = var.location
+  name                = var.app_env_name
+  location            = var.location
   resource_group_name = var.rg_name
   workload_profile {
-    name = "Consumption"
+    name                  = "Consumption"
     workload_profile_type = "Consumption"
-    minimum_count = 0
-    maximum_count = 1
+    minimum_count         = 0
+    maximum_count         = 1
   }
 }
 
 resource "azurerm_key_vault" "chefcito_vault" {
   name = "chefcitovault"
-  
-  location = var.location
+
+  location            = var.location
   resource_group_name = var.rg_name
-  sku_name = "standard"
-  tenant_id = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -103,120 +103,120 @@ resource "azurerm_key_vault" "chefcito_vault" {
 
 
 resource "azurerm_key_vault_secret" "users_db_string" {
-  name = "USERSDBSTRING"
-  value = "postgresql://${azurerm_postgresql_flexible_server.postgre_server.administrator_login}:${azurerm_postgresql_flexible_server.postgre_server.administrator_password}@${azurerm_postgresql_flexible_server.postgre_server.fqdn}/${azurerm_postgresql_flexible_server_database.users_base.name}"
+  name         = "USERSDBSTRING"
+  value        = "postgresql://${azurerm_postgresql_flexible_server.postgre_server.administrator_login}:${azurerm_postgresql_flexible_server.postgre_server.administrator_password}@${azurerm_postgresql_flexible_server.postgre_server.fqdn}/${azurerm_postgresql_flexible_server_database.users_base.name}"
   key_vault_id = azurerm_key_vault.chefcito_vault.id
 }
 
 resource "azurerm_key_vault_secret" "firebase_key" {
-  name = "firebasekey"
-  value = var.firebase_key
+  name         = "firebasekey"
+  value        = var.firebase_key
   key_vault_id = azurerm_key_vault.chefcito_vault.id
 }
 
 resource "azurerm_postgresql_flexible_server" "postgre_server" {
-  name = "chefcito-users-server"
-  resource_group_name = var.rg_name
-  location = var.location
-  version = "16"
-  sku_name = "B_Standard_B1ms"
-  administrator_login = "StrongWombat"
+  name                   = "chefcito-users-server"
+  resource_group_name    = var.rg_name
+  location               = var.location
+  version                = "16"
+  sku_name               = "B_Standard_B1ms"
+  administrator_login    = "StrongWombat"
   administrator_password = "Password*43"
-  zone = "2"
+  zone                   = "2"
 }
 
 resource "azurerm_postgresql_flexible_server_database" "users_base" {
-  name = "chefcitousersbase"
-  collation = "en_US.utf8"
-  charset = "UTF8"
-  server_id = azurerm_postgresql_flexible_server.postgre_server.id
-  depends_on = [ azurerm_postgresql_flexible_server.postgre_server ]
+  name       = "chefcitousersbase"
+  collation  = "en_US.utf8"
+  charset    = "UTF8"
+  server_id  = azurerm_postgresql_flexible_server.postgre_server.id
+  depends_on = [azurerm_postgresql_flexible_server.postgre_server]
 }
 
 resource "azurerm_container_app" "gateway_app" {
-  name = "gateway"
+  name                         = "gateway"
   container_app_environment_id = azurerm_container_app_environment.app_env.id
-  resource_group_name = var.rg_name
-  revision_mode = "Single"
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
   secret {
-    name = "password"
+    name  = "password"
     value = azurerm_container_registry.acr.admin_password
   }
   registry {
-    server = azurerm_container_registry.acr.login_server
-    username = azurerm_container_registry.acr.admin_username
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
     password_secret_name = "password"
   }
   template {
     container {
-      name = "gateway-service"
-      image = "${azurerm_container_registry.acr.login_server}/${var.gateway_image}"
-      cpu = 0.25
+      name   = "gateway-service"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.gateway_image}"
+      cpu    = 0.25
       memory = "0.5Gi"
       env {
-        name = "USERS"
-        value = "${azurerm_container_app.users.ingress[0].fqdn}"      
-        }
+        name  = "USERS"
+        value = azurerm_container_app.users.ingress[0].fqdn
+      }
       env {
-        name = "DEV"
+        name  = "DEV"
         value = false
       }
     }
   }
   ingress {
     external_enabled = true
-    target_port = 80
+    target_port      = 80
     traffic_weight {
       latest_revision = true
-      percentage = 100
+      percentage      = 100
     }
   }
 }
 
 resource "azurerm_container_app" "users" {
-  name = "users"
+  name                         = "users"
   container_app_environment_id = azurerm_container_app_environment.app_env.id
-  resource_group_name = var.rg_name
-  revision_mode = "Single"
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
   secret {
-    name = "password"
+    name  = "password"
     value = azurerm_container_registry.acr.admin_password
   }
   registry {
-    server = azurerm_container_registry.acr.login_server
-    username = azurerm_container_registry.acr.admin_username
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
     password_secret_name = "password"
   }
   secret {
-    name = "db-string"
+    name  = "db-string"
     value = azurerm_key_vault_secret.users_db_string.value
   }
   secret {
-    name = "firebase-key"
+    name  = "firebase-key"
     value = azurerm_key_vault_secret.firebase_key.value
   }
   template {
     container {
-      name = "users-service"
-      image = "${azurerm_container_registry.acr.login_server}/${var.users_image}"
-      cpu = 0.25
+      name   = "users-service"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.users_image}"
+      cpu    = 0.25
       memory = "0.5Gi"
       env {
-        name = "DB_STRING"
+        name        = "DB_STRING"
         secret_name = "db-string"
       }
       env {
-        name = "API_KEY"
+        name        = "API_KEY"
         secret_name = "firebase-key"
       }
     }
   }
   ingress {
-   target_port = 80
-   traffic_weight {
-    latest_revision = true
-    percentage = 100 
-   }
-  } 
+    target_port = 80
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
 }
 
