@@ -23,12 +23,12 @@ variable "firebase_key" {
 }
 
 variable "db_password" {
-  type = string
+  type     = string
   nullable = false
 }
 
 variable "db_username" {
-  type = string
+  type     = string
   nullable = false
 }
 
@@ -38,13 +38,13 @@ module "container_apps" {
   rg_id        = azurerm_resource_group.chefcito.id
   location     = var.location
   firebase_key = var.firebase_key
-  db_password = var.db_password
-  db_username = var.db_username
+  db_password  = var.db_password
+  db_username  = var.db_username
 }
 
 module "frontend" {
-  source = "./front"
-  rg_name = azurerm_resource_group.chefcito.name
+  source   = "./front"
+  rg_name  = azurerm_resource_group.chefcito.name
   location = var.location
 }
 
