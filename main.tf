@@ -22,12 +22,23 @@ variable "firebase_key" {
   nullable = false
 }
 
+variable "db_password" {
+  type = string
+  nullable = false
+}
+
+variable "db_username" {
+  type = string
+  nullable = false
+}
 module "container_apps" {
   source       = "./containerApps"
   rg_name      = azurerm_resource_group.chefcito.name
   rg_id        = azurerm_resource_group.chefcito.id
   location     = var.location
   firebase_key = var.firebase_key
+  db_password = var.db_password
+  db_username = var.db_username
 }
 
 resource "azurerm_resource_group" "chefcito" {
