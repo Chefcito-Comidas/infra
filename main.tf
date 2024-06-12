@@ -31,6 +31,7 @@ variable "db_username" {
   type = string
   nullable = false
 }
+
 module "container_apps" {
   source       = "./containerApps"
   rg_name      = azurerm_resource_group.chefcito.name
@@ -39,6 +40,12 @@ module "container_apps" {
   firebase_key = var.firebase_key
   db_password = var.db_password
   db_username = var.db_username
+}
+
+module "frontend" {
+  source = "./front"
+  rg_name = azurerm_resource_group.chefcito.name
+  location = var.location
 }
 
 resource "azurerm_resource_group" "chefcito" {
