@@ -53,6 +53,16 @@ variable "firebase_key" {
   nullable = false
 }
 
+variable "db_password" {
+  type = string
+  nullable = false
+}
+
+variable "db_username" {
+  type = string
+  nullable = false
+}
+
 resource "azurerm_container_registry" "acr" {
   sku                    = "Standard"
   location               = var.location
@@ -120,8 +130,8 @@ resource "azurerm_postgresql_flexible_server" "postgre_server" {
   location               = var.location
   version                = "16"
   sku_name               = "B_Standard_B1ms"
-  administrator_login    = "StrongWombat"
-  administrator_password = "Password*43"
+  administrator_login    = var.db_username
+  administrator_password = var.db_password 
   zone                   = "2"
 }
 
