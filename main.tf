@@ -45,7 +45,7 @@ module "container_apps" {
 module "frontend" {
   source   = "./front"
   rg_name  = azurerm_resource_group.chefcito.name
-  location = "East US 2" 
+  location = "East US 2"
 }
 
 resource "azurerm_resource_group" "chefcito" {
