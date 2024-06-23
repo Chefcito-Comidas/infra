@@ -48,6 +48,11 @@ variable "users_image" {
   default = "users:latest"
 }
 
+variable "reservations_image" {
+  type = string
+  default = "reservations:latest"
+}
+
 variable "firebase_key" {
   type     = string
   nullable = false
@@ -168,8 +173,16 @@ resource "azurerm_container_app" "gateway_app" {
         value = azurerm_container_app.users.ingress[0].fqdn
       }
       env {
+        name = "RESERVATIONS"
+        value = azurerm_container_app.reservations.ingress[0].fqdn
+      }
+      env {
         name  = "DEV"
         value = false
+      }
+      env {
+        name = "PROTO"
+        value = "https://"
       }
     }
   }
@@ -218,6 +231,45 @@ resource "azurerm_container_app" "users" {
       env {
         name        = "API_KEY"
         secret_name = "firebase-key"
+      }
+    }
+  }
+  ingress {
+    target_port = 80
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+
+resource "azurerm_container_app" "reservations" {
+  name                         = "reservations"
+  container_app_environment_id = azurerm_container_app_environment.app_env.id
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
+  secret {
+    name  = "password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+  registry {
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
+    password_secret_name = "password"
+  }
+  secret {
+    name  = "db-string"
+    value = azurerm_key_vault_secret.users_db_string.value
+  }
+  template {
+    container {
+      name   = "reservations-service"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.reservations_image}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      env {
+        name        = "DB_STRING"
+        secret_name = "db-string"
       }
     }
   }
