@@ -50,7 +50,7 @@ variable "users_image" {
 
 variable "reservations_image" {
   type = string
- default = "staging/reservations:latest"
+  default = "reservations:latest"
 }
 
 variable "firebase_key" {
