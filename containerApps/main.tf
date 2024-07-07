@@ -182,6 +182,10 @@ resource "azurerm_container_app" "gateway_app" {
         value = azurerm_container_app.reservations.ingress[0].fqdn
       }
       env {
+        name = "VENUES"
+        value = azurerm_container_app.venues.ingress[0].fqdn
+      }
+      env {
         name  = "DEV"
         value = false
       }
