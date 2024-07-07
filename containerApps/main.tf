@@ -53,6 +53,11 @@ variable "reservations_image" {
   default = "reservations:latest"
 }
 
+variable "venues_image" {
+  type = string
+  default = "venues:latest"
+}
+
 variable "firebase_key" {
   type     = string
   nullable = false
@@ -265,6 +270,45 @@ resource "azurerm_container_app" "reservations" {
     container {
       name   = "reservations-service"
       image  = "${azurerm_container_registry.acr.login_server}/${var.reservations_image}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      env {
+        name        = "DB_STRING"
+        secret_name = "db-string"
+      }
+    }
+  }
+  ingress {
+    target_port = 80
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+
+resource "azurerm_container_app" "venues" {
+  name                         = "venues"
+  container_app_environment_id = azurerm_container_app_environment.app_env.id
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
+  secret {
+    name  = "password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+  registry {
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
+    password_secret_name = "password"
+  }
+  secret {
+    name  = "db-string"
+    value = azurerm_key_vault_secret.users_db_string.value
+  }
+  template {
+    container {
+      name   = "venues-service"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.venues_image}"
       cpu    = 0.25
       memory = "0.5Gi"
       env {
