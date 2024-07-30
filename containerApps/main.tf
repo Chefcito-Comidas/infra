@@ -49,13 +49,18 @@ variable "users_image" {
 }
 
 variable "reservations_image" {
-  type = string
+  type    = string
   default = "reservations:latest"
 }
 
 variable "venues_image" {
-  type = string
+  type    = string
   default = "venues:latest"
+}
+
+variable "opinions_image" {
+  type    = string
+  default = "staging/opinions:latest"
 }
 
 variable "firebase_key" {
@@ -64,12 +69,12 @@ variable "firebase_key" {
 }
 
 variable "db_password" {
-  type = string
+  type     = string
   nullable = false
 }
 
 variable "db_username" {
-  type = string
+  type     = string
   nullable = false
 }
 
@@ -128,6 +133,12 @@ resource "azurerm_key_vault_secret" "users_db_string" {
   key_vault_id = azurerm_key_vault.chefcito_vault.id
 }
 
+resource "azurerm_key_vault_secret" "mongo_db_string" {
+  name         = "MONGODBSTRING"
+  value        = azurerm_cosmosdb_account.mongo_account.primary_mongodb_connection_string
+  key_vault_id = azurerm_key_vault.chefcito_vault.id
+}
+
 resource "azurerm_key_vault_secret" "firebase_key" {
   name         = "firebasekey"
   value        = var.firebase_key
@@ -141,8 +152,31 @@ resource "azurerm_postgresql_flexible_server" "postgre_server" {
   version                = "16"
   sku_name               = "B_Standard_B1ms"
   administrator_login    = var.db_username
-  administrator_password = var.db_password 
+  administrator_password = var.db_password
   zone                   = "2"
+}
+
+resource "azurerm_cosmosdb_account" "mongo_account" {
+  name                = "checfito-cosmos-account"
+  location            = var.location
+  resource_group_name = var.rg_name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+  free_tier_enabled   = true
+  geo_location {
+    failover_priority = 0
+    location          = var.location
+  }
+  consistency_policy {
+    consistency_level = "Eventual"
+  }
+}
+
+resource "azurerm_cosmosdb_mongo_database" "mongo_base" {
+  name                = "chefcito-mongo-db"
+  resource_group_name = azurerm_cosmosdb_account.mongo_account.resource_group_name
+  account_name        = azurerm_cosmosdb_account.mongo_account.name
+  throughput          = 400
 }
 
 resource "azurerm_postgresql_flexible_server_database" "users_base" {
@@ -178,19 +212,23 @@ resource "azurerm_container_app" "gateway_app" {
         value = azurerm_container_app.users.ingress[0].fqdn
       }
       env {
-        name = "RESERVATIONS"
+        name  = "RESERVATIONS"
         value = azurerm_container_app.reservations.ingress[0].fqdn
       }
       env {
-        name = "VENUES"
+        name  = "VENUES"
         value = azurerm_container_app.venues.ingress[0].fqdn
+      }
+      env {
+        name  = "OPINIONS"
+        value = azurerm_container_app.opinions.ingress[0].fqdn
       }
       env {
         name  = "DEV"
         value = false
       }
       env {
-        name = "PROTO"
+        name  = "PROTO"
         value = "https://"
       }
     }
@@ -296,14 +334,14 @@ resource "azurerm_container_app" "venues" {
   container_app_environment_id = azurerm_container_app_environment.app_env.id
   resource_group_name          = var.rg_name
   revision_mode                = "Single"
-  secret {
-    name  = "password"
-    value = azurerm_container_registry.acr.admin_password
-  }
   registry {
     server               = azurerm_container_registry.acr.login_server
     username             = azurerm_container_registry.acr.admin_username
     password_secret_name = "password"
+  }
+  secret {
+    name  = "password"
+    value = azurerm_container_registry.acr.admin_password
   }
   secret {
     name  = "db-string"
@@ -318,6 +356,38 @@ resource "azurerm_container_app" "venues" {
       env {
         name        = "DB_STRING"
         secret_name = "db-string"
+      }
+    }
+  }
+}
+resource "azurerm_container_app" "opinions" {
+  name                         = "reservations"
+  container_app_environment_id = azurerm_container_app_environment.app_env.id
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
+  secret {
+    name  = "password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+  secret {
+    name  = "conn-string"
+    value = azurerm_key_vault_secret.mongo_db_string.value
+  }
+  registry {
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
+    password_secret_name = "password"
+  }
+
+  template {
+    container {
+      name   = "opinions-image"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.opinions_image}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      env {
+        name        = "CONN_STRING"
+        secret_name = "conn-string"
       }
     }
   }
