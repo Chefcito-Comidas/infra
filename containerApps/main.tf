@@ -359,6 +359,13 @@ resource "azurerm_container_app" "venues" {
       }
     }
   }
+  ingress {
+    target_port = 80
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
 }
 resource "azurerm_container_app" "opinions" {
   name                         = "reservations"
