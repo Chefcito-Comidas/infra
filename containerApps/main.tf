@@ -368,7 +368,7 @@ resource "azurerm_container_app" "venues" {
   }
 }
 resource "azurerm_container_app" "opinions" {
-  name                         = "reservations"
+  name                         = "opinions"
   container_app_environment_id = azurerm_container_app_environment.app_env.id
   resource_group_name          = var.rg_name
   revision_mode                = "Single"
