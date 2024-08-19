@@ -468,8 +468,8 @@ resource "azurerm_container_app" "summaries" {
     container {
       name   = "summaries-image"
       image  = "${azurerm_container_registry.acr.login_server}/${var.summaries_image}"
-      cpu    = 0.25
-      memory = "0.5Gi"
+      cpu    = 0.5
+      memory = "1.0Gi"
       env {
         name        = "CONN_STRING"
         secret_name = "conn-string"
