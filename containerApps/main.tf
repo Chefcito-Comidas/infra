@@ -484,7 +484,7 @@ resource "azurerm_container_app" "summaries" {
       }
       env {
         name  = "DEV"
-        value = false
+        value = true
       }
     }
   }
