@@ -60,7 +60,12 @@ variable "venues_image" {
 
 variable "opinions_image" {
   type    = string
-  default = "staging/opinions:latest"
+  default = "opinions:latest"
+}
+
+variable "summaries_image" {
+  type    = string
+  default = "summaries:latest"
 }
 
 variable "firebase_key" {
@@ -74,6 +79,16 @@ variable "db_password" {
 }
 
 variable "db_username" {
+  type     = string
+  nullable = false
+}
+
+variable "vertex_key" {
+  type     = string
+  nullable = false
+}
+
+variable "vertex_key_id" {
   type     = string
   nullable = false
 }
@@ -136,6 +151,18 @@ resource "azurerm_key_vault_secret" "users_db_string" {
 resource "azurerm_key_vault_secret" "mongo_db_string" {
   name         = "MONGODBSTRING"
   value        = azurerm_cosmosdb_account.mongo_account.primary_mongodb_connection_string
+  key_vault_id = azurerm_key_vault.chefcito_vault.id
+}
+
+resource "azurerm_key_vault_secret" "vertex_key" {
+  name         = "VERTEXKEY"
+  value        = var.vertex_key
+  key_vault_id = azurerm_key_vault.chefcito_vault.id
+}
+
+resource "azurerm_key_vault_secret" "vertex_key_id" {
+  name         = "VERTEXID"
+  value        = var.vertex_key_id
   key_vault_id = azurerm_key_vault.chefcito_vault.id
 }
 
@@ -395,6 +422,69 @@ resource "azurerm_container_app" "opinions" {
       env {
         name        = "CONN_STRING"
         secret_name = "conn-string"
+      }
+      env {
+        name  = "SUMMARIES"
+        value = null
+      }
+    }
+  }
+  ingress {
+    target_port = 80
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+
+resource "azurerm_container_app" "summaries" {
+  name                         = "summaries"
+  container_app_environment_id = azurerm_container_app_environment.app_env.id
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
+  secret {
+    name  = "password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+  secret {
+    name  = "conn-string"
+    value = azurerm_key_vault_secret.mongo_db_string.value
+  }
+  secret {
+    name  = "vertex-key"
+    value = azurerm_key_vault_secret.vertex_key.value
+  }
+  secret {
+    name  = "vertex-key-id"
+    value = azurerm_key_vault_secret.vertex_key_id.value
+  }
+  registry {
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
+    password_secret_name = "password"
+  }
+  template {
+    container {
+      name   = "summaries-image"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.summaries_image}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      env {
+        name        = "CONN_STRING"
+        secret_name = "conn-string"
+      }
+      env {
+        name        = "KEY_ID"
+        secret_name = "vertex-key-id"
+      }
+      env {
+        name        = "KEY"
+        secret_name = "vertex-key"
+      }
+      env {
+        name  = "DEV"
+        value = false
       }
     }
   }

@@ -20,7 +20,8 @@ jobs:
       TF_VAR_firebase_key: ${{secrets.FIREBASE_KEY}}
       TF_VAR_db_password: ${{secrets.DB_PASSWORD}}
       TF_VAR_db_username: ${{secrets.DB_USERNAME}}
-
+      TF_VAR_vertex_key: ${{secrets.VERTEX_KEY}}
+      TF_VAR_vertex_key_id: ${{secrets.VERTEX_KEY_ID}}
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:

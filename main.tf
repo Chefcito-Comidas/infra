@@ -32,14 +32,26 @@ variable "db_username" {
   nullable = false
 }
 
+variable "vertex_key" {
+  type     = string
+  nullable = false
+}
+
+variable "vertex_key_id" {
+  type     = string
+  nullable = false
+}
+
 module "container_apps" {
-  source       = "./containerApps"
-  rg_name      = azurerm_resource_group.chefcito.name
-  rg_id        = azurerm_resource_group.chefcito.id
-  location     = var.location
-  firebase_key = var.firebase_key
-  db_password  = var.db_password
-  db_username  = var.db_username
+  source        = "./containerApps"
+  rg_name       = azurerm_resource_group.chefcito.name
+  rg_id         = azurerm_resource_group.chefcito.id
+  location      = var.location
+  firebase_key  = var.firebase_key
+  db_password   = var.db_password
+  db_username   = var.db_username
+  vertex_key    = var.vertex_key
+  vertex_key_id = var.vertex_key_id
 }
 
 module "frontend" {
