@@ -74,7 +74,7 @@ variable "stats_image" {
 }
 
 variable "communications_image" {
-  type = string
+  type    = string
   default = "staging/communications:latest"
 }
 
@@ -84,12 +84,12 @@ variable "firebase_key" {
 }
 
 variable "twilio_key" {
-  type = string
+  type     = string
   nullable = false
 }
 
 variable "twilio_key_id" {
-  type = string
+  type     = string
   nullable = false
 }
 
@@ -380,11 +380,11 @@ resource "azurerm_container_app" "reservations" {
         value = azurerm_container_app.venues.ingress[0].fqdn
       }
       env {
-        name = "OPINIONS"
+        name  = "OPINIONS"
         value = azurerm_container_app.opinions.ingress[0].fqdn
       }
       env {
-        name = "STATS"
+        name  = "STATS"
         value = azurerm_container_app.stats.ingress[0].fqdn
       }
     }
@@ -512,11 +512,11 @@ resource "azurerm_container_app" "communications" {
         secret_name = "db-string"
       }
       env {
-        name = "twilio_token"
+        name        = "twilio_token"
         secret_name = "twilio-key"
       }
       env {
-        name = "twilio_sid"
+        name        = "twilio_sid"
         secret_name = "twilio-key-id"
       }
     }

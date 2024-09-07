@@ -42,6 +42,16 @@ variable "vertex_key_id" {
   nullable = false
 }
 
+variable "twilio_key" {
+  type     = string
+  nullable = false
+}
+
+variable "twilio_key_id" {
+  type     = string
+  nullable = false
+}
+
 module "container_apps" {
   source        = "./containerApps"
   rg_name       = azurerm_resource_group.chefcito.name
@@ -52,6 +62,8 @@ module "container_apps" {
   db_username   = var.db_username
   vertex_key    = var.vertex_key
   vertex_key_id = var.vertex_key_id
+  twilio_key    = var.twilio_key
+  twilio_key_id = var.twilio_key_id
 }
 
 module "frontend" {
