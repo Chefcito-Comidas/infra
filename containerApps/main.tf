@@ -73,8 +73,23 @@ variable "stats_image" {
   default = "staging/stats:latest"
 }
 
+variable "communications_image" {
+  type = string
+  default = "staging/communications:latest"
+}
+
 variable "firebase_key" {
   type     = string
+  nullable = false
+}
+
+variable "twilio_key" {
+  type = string
+  nullable = false
+}
+
+variable "twilio_key_id" {
+  type = string
   nullable = false
 }
 
@@ -177,6 +192,16 @@ resource "azurerm_key_vault_secret" "firebase_key" {
   key_vault_id = azurerm_key_vault.chefcito_vault.id
 }
 
+resource "azurerm_key_vault_secret" "twilio_key" {
+  name         = "twiliokey"
+  value        = var.twilio_key
+  key_vault_id = azurerm_key_vault.chefcito_vault.id
+}
+resource "azurerm_key_vault_secret" "twilio_key_id" {
+  name         = "twiliokeyid"
+  value        = var.twilio_key_id
+  key_vault_id = azurerm_key_vault.chefcito_vault.id
+}
 resource "azurerm_postgresql_flexible_server" "postgre_server" {
   name                   = "chefcito-users-server"
   resource_group_name    = var.rg_name
@@ -450,7 +475,60 @@ resource "azurerm_container_app" "stats" {
   }
 }
 
-
+resource "azurerm_container_app" "communications" {
+  name                         = "communications"
+  container_app_environment_id = azurerm_container_app_environment.app_env.id
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
+  registry {
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
+    password_secret_name = "password"
+  }
+  secret {
+    name  = "password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+  secret {
+    name  = "db-string"
+    value = azurerm_key_vault_secret.users_db_string.value
+  }
+  secret {
+    name  = "twilio-key"
+    value = azurerm_key_vault_secret.twilio_key.value
+  }
+  secret {
+    name  = "twilio-key-id"
+    value = azurerm_key_vault_secret.twilio_key_id.value
+  }
+  template {
+    container {
+      name   = "venues-service"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.communications_image}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      env {
+        name        = "DB_STRING"
+        secret_name = "db-string"
+      }
+      env {
+        name = "twilio_token"
+        secret_name = "twilio-key"
+      }
+      env {
+        name = "twilio_sid"
+        secret_name = "twilio-key-id"
+      }
+    }
+  }
+  ingress {
+    target_port = 80
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
 
 resource "azurerm_container_app" "opinions" {
   name                         = "opinions"
