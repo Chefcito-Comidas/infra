@@ -68,6 +68,11 @@ variable "summaries_image" {
   default = "summaries:latest"
 }
 
+variable "stats_image" {
+  type    = string
+  default = "staging/stats:latest"
+}
+
 variable "firebase_key" {
   type     = string
   nullable = false
@@ -345,6 +350,18 @@ resource "azurerm_container_app" "reservations" {
         name        = "DB_STRING"
         secret_name = "db-string"
       }
+      env {
+        name  = "VENUES"
+        value = azurerm_container_app.venues.ingress[0].fqdn
+      }
+      env {
+        name = "OPINIONS"
+        value = azurerm_container_app.opinions.ingress[0].fqdn
+      }
+      env {
+        name = "STATS"
+        value = azurerm_container_app.stats.ingress[0].fqdn
+      }
     }
   }
   ingress {
@@ -394,6 +411,47 @@ resource "azurerm_container_app" "venues" {
     }
   }
 }
+resource "azurerm_container_app" "stats" {
+  name                         = "stats"
+  container_app_environment_id = azurerm_container_app_environment.app_env.id
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
+  secret {
+    name  = "password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+  registry {
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
+    password_secret_name = "password"
+  }
+  secret {
+    name  = "db-string"
+    value = azurerm_key_vault_secret.mongo_db_string.value
+  }
+  template {
+    container {
+      name   = "stats-service"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.stats_image}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      env {
+        name        = "MONGO_STRING"
+        secret_name = "db-string"
+      }
+    }
+  }
+  ingress {
+    target_port = 80
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+
+
+
 resource "azurerm_container_app" "opinions" {
   name                         = "opinions"
   container_app_environment_id = azurerm_container_app_environment.app_env.id
