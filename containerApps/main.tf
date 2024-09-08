@@ -336,6 +336,10 @@ resource "azurerm_container_app" "users" {
         name        = "API_KEY"
         secret_name = "firebase-key"
       }
+      env {
+        name  = "COMMUNICATIONS"
+        value = azurerm_container_app.communications.ingress[0].fqdn
+      }
     }
   }
   ingress {
