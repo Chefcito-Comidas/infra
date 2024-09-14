@@ -181,7 +181,7 @@ resource "azurerm_function_app_function" "example" {
   language        = "Python"
   file {
     name = "function_app.py"
-    content = file("${path.root/queuefunc/function_app.py}")
+    content = file("${path.root}/queuefunc/function_app.py")
   } 
   config_json = jsonencode({
     "bindings" = [
