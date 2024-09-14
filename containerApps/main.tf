@@ -147,20 +147,18 @@ resource "azurerm_servicebus_queue" "queue" {
 
 }
 
-resource "azurerm_app_service_plan" "queue_function_plan" {
+resource "azurerm_service_plan" "queue_function_plan" {
   name = "chefcito-function-plan"
   location = var.location
   resource_group_name = var.rg_name
   kind = "FunctionApp"
-
-  sku {
-    tier = "Dynamic"
-    size = "Y1"
-  }
+  os_type= "Linux"
+  sku_name = "Y1"
+  
 }
 
 resource "azurerm_storage_account" "functions_account" {
-  name = "functionstorageaccount"
+  name = "chefcitostorageaccount"
   resource_group_name = var.rg_name
   location = var.location
   account_tier = "Standard"
