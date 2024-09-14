@@ -149,17 +149,17 @@ resource "azurerm_servicebus_queue" "queue" {
 
 resource "azurerm_service_plan" "queue_function_plan" {
   name = "chefcito-function-plan"
-  location = var.location
+  location = "WestUS"
   resource_group_name = var.rg_name
   os_type= "Linux"
-  sku_name = "B1"
+  sku_name = "Y1"
   
 }
 
 resource "azurerm_storage_account" "functions_account" {
   name = "chefcitofunctionstrga"
   resource_group_name = var.rg_name
-  location = var.location
+  location = "WestUS"
   account_tier = "Standard"
   account_replication_type = "LRS"
 }
