@@ -134,6 +134,19 @@ resource "azurerm_container_app_environment" "app_env" {
   }
 }
 
+resource "azurerm_servicebus_namespace" "queues_namespace" {
+  name ="chefcito-namespace"
+  location = var.location
+  resource_group_name = var.rg_name
+  sku = "Standard"
+}
+
+resource "azurerm_servicebus_queue" "queue" {
+  name = "chefcito-queue"
+  namespace_id = azurerm_servicebus_namespace.queues_namespace.id
+
+}
+
 resource "azurerm_key_vault" "chefcito_vault" {
   name = "chefcitovault"
 
@@ -391,6 +404,10 @@ resource "azurerm_container_app" "reservations" {
         name  = "STATS"
         value = azurerm_container_app.stats.ingress[0].fqdn
       }
+      env {
+        name = "QUEUE"
+        value = "${azurerm_servicebus_namespace.queues_namespace.endpoint}/${azurerm_servicebus_queue.queue.name}"
+      }
     }
   }
   ingress {
@@ -636,4 +653,6 @@ resource "azurerm_container_app" "summaries" {
     }
   }
 }
+
+
 
