@@ -151,7 +151,6 @@ resource "azurerm_service_plan" "queue_function_plan" {
   name = "chefcito-function-plan"
   location = var.location
   resource_group_name = var.rg_name
-  kind = "FunctionApp"
   os_type= "Linux"
   sku_name = "Y1"
   
