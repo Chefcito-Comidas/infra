@@ -172,26 +172,7 @@ resource "azurerm_function_app" "queue_function" {
   storage_account_name = azurerm_storage_account.functions_account.name
   storage_account_access_key = azurerm_storage_account.functions_account.primary_access_key
 }
-resource "azurerm_function_app_function" "example" {
-  name            = "example-function-app-function"
-  function_app_id = azurerm_function_app.queue_function.id
-  language        = "Python"
-  file {
-    name = "function_app.py"
-    content = file("${path.root}/queuefunc/function_app.py")
-  } 
-  config_json = jsonencode({
-    "bindings" = [
-      {
-        "direction" = "in"
-        "name" = "queueTrigger"
-        "type" = "serviceBusTrigger"
-        "queueName" = azurerm_servicebus_queue.queue.name
-        "connection" = azurerm_servicebus_namespace.queues_namespace.endpoint
-      }
-    ]
-  })
-}
+
 resource "azurerm_key_vault" "chefcito_vault" {
   name = "chefcitovault"
 
