@@ -168,7 +168,7 @@ resource "azurerm_function_app" "queue_function" {
   name = "chefcito-queue-function"
   location = var.location
   resource_group_name = var.rg_name
-  app_service_plan_id = azurerm_app_service_plan.queue_function_plan.id
+  app_service_plan_id = azurerm_service_plan.queue_function_plan.id
   storage_account_name = azurerm_storage_account.functions_account.id
   storage_account_access_key = azurerm_storage_account.functions_account.primary_access_key
 }
