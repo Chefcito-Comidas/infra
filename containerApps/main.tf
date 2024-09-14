@@ -159,14 +159,14 @@ resource "azurerm_service_plan" "queue_function_plan" {
 resource "azurerm_storage_account" "functions_account" {
   name = "chefcitofunctionstrga"
   resource_group_name = var.rg_name
-  location = "WestUS"
+  location = var.location
   account_tier = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_function_app" "queue_function" {
   name = "chefcito-queue-function"
-  location = var.location
+  location = "WestUS"
   resource_group_name = var.rg_name
   app_service_plan_id = azurerm_service_plan.queue_function_plan.id
   storage_account_name = azurerm_storage_account.functions_account.id
