@@ -157,7 +157,7 @@ resource "azurerm_service_plan" "queue_function_plan" {
 }
 
 resource "azurerm_storage_account" "functions_account" {
-  name = "chefcitostorageaccount"
+  name = "chefcitofunctionstrg"
   resource_group_name = var.rg_name
   location = var.location
   account_tier = "Standard"
