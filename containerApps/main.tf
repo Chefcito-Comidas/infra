@@ -164,7 +164,7 @@ resource "azurerm_storage_account" "functions_account" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_function_app" "queue_function" {
+resource "azurerm_linux_function_app" "queue_function" {
   name = "chefcito-queue-function"
   location = "WestUS"
   resource_group_name = var.rg_name
