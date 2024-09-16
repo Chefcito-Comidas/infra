@@ -168,9 +168,11 @@ resource "azurerm_linux_function_app" "queue_function" {
   name = "chefcito-queue-function"
   location = "WestUS"
   resource_group_name = var.rg_name
-  app_service_plan_id = azurerm_service_plan.queue_function_plan.id
+  service_plan_id = azurerm_service_plan.queue_function_plan.id
   storage_account_name = azurerm_storage_account.functions_account.name
   storage_account_access_key = azurerm_storage_account.functions_account.primary_access_key
+
+  site_config {}
 }
 
 resource "azurerm_key_vault" "chefcito_vault" {
