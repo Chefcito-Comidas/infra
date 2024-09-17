@@ -173,7 +173,9 @@ resource "azurerm_linux_function_app" "queue_function" {
   storage_account_access_key = azurerm_storage_account.functions_account.primary_access_key
 
   site_config {
-    linux_fx_version = "Python|3.11"
+    application_stack {
+      python_version = "3.11"
+    }
   }
 }
 
