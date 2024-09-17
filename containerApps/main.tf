@@ -172,7 +172,9 @@ resource "azurerm_linux_function_app" "queue_function" {
   storage_account_name = azurerm_storage_account.functions_account.name
   storage_account_access_key = azurerm_storage_account.functions_account.primary_access_key
 
-  site_config {}
+  site_config {
+    linux_fx_version = "Python|3.11"
+  }
 }
 
 resource "azurerm_key_vault" "chefcito_vault" {
