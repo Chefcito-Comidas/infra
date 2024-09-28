@@ -70,12 +70,17 @@ variable "summaries_image" {
 
 variable "stats_image" {
   type    = string
-  default = "staging/stats:latest"
+  default = "stats:latest"
 }
 
 variable "communications_image" {
   type    = string
-  default = "staging/communications:latest"
+  default = "communications:latest"
+}
+
+variable "points_image" {
+  type    = string
+  default = "points:latest"
 }
 
 variable "firebase_key" {
@@ -326,6 +331,10 @@ resource "azurerm_container_app" "gateway_app" {
         value = azurerm_container_app.opinions.ingress[0].fqdn
       }
       env {
+        name  = "POINTS"
+        value = azurerm_container_app.points.ingress[0].fqdn
+      }
+      env {
         name  = "DEV"
         value = false
       }
@@ -435,6 +444,10 @@ resource "azurerm_container_app" "reservations" {
       env {
         name  = "STATS"
         value = azurerm_container_app.stats.ingress[0].fqdn
+      }
+      env {
+        name  = "POINTS"
+        value = azurerm_container_app.points.ingress[0].fqdn
       }
       env {
         name = "QUEUE"
@@ -614,7 +627,7 @@ resource "azurerm_container_app" "opinions" {
       }
       env {
         name  = "SUMMARIES"
-        value = null
+        value = azurerm_container_app.summaries.ingress[0].fqdn 
       }
     }
   }
@@ -686,5 +699,45 @@ resource "azurerm_container_app" "summaries" {
   }
 }
 
+
+resource "azurerm_container_app" "points" {
+  name                         = "points"
+  container_app_environment_id = azurerm_container_app_environment.app_env.id
+  resource_group_name          = var.rg_name
+  revision_mode                = "Single"
+  secret {
+    name  = "password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+  secret {
+    name  = "conn-string"
+    value = azurerm_key_vault_secret.users_db_string.value
+  }
+  registry {
+    server               = azurerm_container_registry.acr.login_server
+    username             = azurerm_container_registry.acr.admin_username
+    password_secret_name = "password"
+  }
+
+  template {
+    container {
+      name   = "points-image"
+      image  = "${azurerm_container_registry.acr.login_server}/${var.points_image}"
+      cpu    = 0.25
+      memory = "0.5Gi"
+      env {
+        name        = "CONN_STRING"
+        secret_name = "conn-string"
+      }
+    }
+  }
+  ingress {
+    target_port = 80
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
 
 
