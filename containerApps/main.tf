@@ -139,50 +139,7 @@ resource "azurerm_container_app_environment" "app_env" {
   }
 }
 
-resource "azurerm_servicebus_namespace" "queues_namespace" {
-  name ="chefcito-namespace"
-  location = var.location
-  resource_group_name = var.rg_name
-  sku = "Standard"
-}
 
-resource "azurerm_servicebus_queue" "queue" {
-  name = "chefcito-queue"
-  namespace_id = azurerm_servicebus_namespace.queues_namespace.id
-
-}
-
-resource "azurerm_service_plan" "queue_function_plan" {
-  name = "chefcito-function-plan"
-  location = "WestUS"
-  resource_group_name = var.rg_name
-  os_type= "Linux"
-  sku_name = "Y1"
-  
-}
-
-resource "azurerm_storage_account" "functions_account" {
-  name = "chefcitofunctionstrg"
-  resource_group_name = var.rg_name
-  location = var.location
-  account_tier = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_linux_function_app" "queue_function" {
-  name = "chefcito-function-app"
-  location = "WestUS"
-  resource_group_name = var.rg_name
-  service_plan_id = azurerm_service_plan.queue_function_plan.id
-  storage_account_name = azurerm_storage_account.functions_account.name
-  storage_account_access_key = azurerm_storage_account.functions_account.primary_access_key
-
-  site_config {
-    application_stack {
-      python_version = "3.11"
-    }
-  }
-}
 
 resource "azurerm_key_vault" "chefcito_vault" {
   name = "chefcitovault"
@@ -448,10 +405,6 @@ resource "azurerm_container_app" "reservations" {
       env {
         name  = "POINTS"
         value = azurerm_container_app.points.ingress[0].fqdn
-      }
-      env {
-        name = "QUEUE"
-        value = "${azurerm_servicebus_namespace.queues_namespace.endpoint}${azurerm_servicebus_queue.queue.name}"
       }
     }
   }
