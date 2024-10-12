@@ -403,6 +403,10 @@ resource "azurerm_container_app" "reservations" {
         value = azurerm_container_app.stats.ingress[0].fqdn
       }
       env {
+        name = "USERS"
+        value = azurerm_container_app.users.ingress[0].fqdn
+      }
+      env {
         name  = "POINTS"
         value = azurerm_container_app.points.ingress[0].fqdn
       }
