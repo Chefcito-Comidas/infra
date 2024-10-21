@@ -67,9 +67,9 @@ module "container_apps" {
 }
 
 module "frontend" {
-  source   = "./front"
-  rg_name  = azurerm_resource_group.chefcito.name
-  name     = "chefcito-web"
+  source  = "./front"
+  rg_name = azurerm_resource_group.chefcito.name
+  name    = "chefcito-web"
 }
 
 module "book_front" {
