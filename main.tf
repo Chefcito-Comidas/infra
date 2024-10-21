@@ -70,13 +70,13 @@ module "frontend" {
   source   = "./front"
   rg_name  = azurerm_resource_group.chefcito.name
   location = "East US 2"
-  name = "chefcito-web"
+  name     = "chefcito-web"
 }
 
 module "book_front" {
-  source = "./front"
+  source  = "./front"
   rg_name = azurerm_resource_group.chefcito.name
-  name = "chefcito-booking"
+  name    = "chefcito-booking"
 }
 
 resource "azurerm_resource_group" "chefcito" {
