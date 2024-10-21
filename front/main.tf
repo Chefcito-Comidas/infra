@@ -18,8 +18,13 @@ variable "rg_name" {
   nullable = false
 }
 
+variable "name" {
+  type = string
+  nullable = false
+}
+
 resource "azurerm_static_web_app" "front" {
-  name = "chefcito-web"
+  name = var.name
   resource_group_name = var.rg_name
   location = var.location
 }
