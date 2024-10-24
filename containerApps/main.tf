@@ -443,7 +443,7 @@ resource "azurerm_container_app" "venues" {
     container {
       name   = "venues-service"
       image  = "${azurerm_container_registry.acr.login_server}/${var.venues_image}"
-      cpu    = 0.3
+      cpu    = 0.25
       memory = "0.5Gi"
       env {
         name        = "DB_STRING"
@@ -481,7 +481,7 @@ resource "azurerm_container_app" "stats" {
     container {
       name   = "stats-service"
       image  = "${azurerm_container_registry.acr.login_server}/${var.stats_image}"
-      cpu    = 0.3
+      cpu    = 0.25
       memory = "0.5Gi"
       env {
         name        = "MONGO_STRING"
@@ -528,7 +528,7 @@ resource "azurerm_container_app" "communications" {
     container {
       name   = "venues-service"
       image  = "${azurerm_container_registry.acr.login_server}/${var.communications_image}"
-      cpu    = 0.3
+      cpu    = 0.25
       memory = "0.5Gi"
       env {
         name        = "DB_STRING"
@@ -680,7 +680,7 @@ resource "azurerm_container_app" "points" {
     container {
       name   = "points-image"
       image  = "${azurerm_container_registry.acr.login_server}/${var.points_image}"
-      cpu    = 0.3
+      cpu    = 0.25
       memory = "0.5Gi"
       env {
         name        = "CONN_STRING"
