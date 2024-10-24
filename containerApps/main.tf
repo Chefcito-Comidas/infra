@@ -443,8 +443,8 @@ resource "azurerm_container_app" "venues" {
     container {
       name   = "venues-service"
       image  = "${azurerm_container_registry.acr.login_server}/${var.venues_image}"
-      cpu    = 0.25
-      memory = "0.5Gi"
+      cpu    = 0.5
+      memory = "1.0Gi"
       env {
         name        = "DB_STRING"
         secret_name = "db-string"
