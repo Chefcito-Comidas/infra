@@ -403,12 +403,16 @@ resource "azurerm_container_app" "reservations" {
         value = azurerm_container_app.stats.ingress[0].fqdn
       }
       env {
-        name = "USERS"
+        name  = "USERS"
         value = azurerm_container_app.users.ingress[0].fqdn
       }
       env {
         name  = "POINTS"
         value = azurerm_container_app.points.ingress[0].fqdn
+      }
+      env {
+        name  = "COMMUNICATIONS"
+        value = azurerm_container_app.communications.ingress[0].fqdn
       }
     }
   }
@@ -584,7 +588,7 @@ resource "azurerm_container_app" "opinions" {
       }
       env {
         name  = "SUMMARIES"
-        value = azurerm_container_app.summaries.ingress[0].fqdn 
+        value = azurerm_container_app.summaries.ingress[0].fqdn
       }
     }
   }
@@ -696,5 +700,3 @@ resource "azurerm_container_app" "points" {
     }
   }
 }
-
-
